@@ -1,0 +1,10 @@
+{
+  "id": "cerebro-translator",
+  "name": "Cerebro Translator",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.0",
+  "description": "Traduce notas completas de inglés a español creando una nueva nota. Compatible con iPhone y Mac. Motor Google Translate gratuito sin API key y opcional Google Gemini.",
+  "author": "Antigravity & Juan Candelario",
+  "authorUrl": "",
+  "isDesktopOnly": false
+}
