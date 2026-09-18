@@ -3,9 +3,9 @@
 const { Plugin, PluginSettingTab, Setting, Notice, requestUrl, MarkdownView, normalizePath } = require('obsidian');
 
 const DEFAULT_SETTINGS = {
-    engine: 'google_web', // 'google_web' | 'gemini'
+    engine: 'gemini', // 'google_web' | 'gemini'
     geminiApiKey: '',
-    geminiModel: 'gemini-2.5-flash',
+    geminiModel: 'gemini-3.6-flash',
     targetLanguage: 'es',
     sourceLanguage: 'auto',
     fileNameMode: 'prefix', // 'prefix' | 'translated' | 'prefix_translated'
@@ -434,7 +434,7 @@ class CerebroTranslatorPlugin extends Plugin {
      */
     async translateWithGemini(markdownText) {
         const apiKey = this.settings.geminiApiKey;
-        const model = this.settings.geminiModel || 'gemini-2.5-flash';
+        const model = this.settings.geminiModel || 'gemini-3.6-flash';
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${apiKey}`;
 
         const prompt = `Actúa como un traductor académico y profesional de alto nivel. Traduce la siguiente nota de Markdown del inglés al español.
@@ -473,7 +473,15 @@ ${markdownText}`;
 
         const data = response.json;
         if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
-            return data.candidates[0].content.parts[0].text;
+            const textParts = data.candidates[0].content.parts
+                .filter(p => p.text && !p.thought)
+                .map(p => p.text);
+            if (textParts.length > 0) {
+                return textParts.join('');
+            }
+            if (data.candidates[0].content.parts[0].text) {
+                return data.candidates[0].content.parts[0].text;
+            }
         }
 
         throw new Error('La respuesta de Gemini no contiene el formato esperado.');
@@ -531,9 +539,9 @@ class CerebroTranslatorSettingTab extends PluginSettingTab {
                 .setDesc('Modelo a utilizar para la traducción.')
                 .addDropdown(dropdown => {
                     dropdown
-                        .addOption('gemini-2.5-flash', 'Gemini 2.5 Flash (Recomendado)')
-                        .addOption('gemini-2.0-flash', 'Gemini 2.0 Flash')
-                        .addOption('gemini-1.5-flash', 'Gemini 1.5 Flash')
+                        .addOption('gemini-3.6-flash', 'Gemini 3.6 Flash (Recomendado)')
+                        .addOption('gemini-3.8-flash', 'Gemini 3.8 Flash')
+                        .addOption('gemini-flash-latest', 'Gemini Flash (Última versión)')
                         .setValue(this.plugin.settings.geminiModel)
                         .onChange(async (value) => {
                             this.plugin.settings.geminiModel = value;
